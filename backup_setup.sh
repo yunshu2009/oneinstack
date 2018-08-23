@@ -39,6 +39,7 @@ while :; do echo
   echo -e "\t${CMSG}5${CEND}. UPYUN"
   echo -e "\t${CMSG}6${CEND}. QINIU"
   read -p "Please input a number:(Default 1 press Enter) " desc_bk
+  #如果未输入选项，则 desc_bk默认为1
   [ -z "${desc_bk}" ] && desc_bk=1
   ary=(1 2 3 4 5 6 12 13 14 15 16 23 24 25 26 34 35 36 45 46 56 123 124 125 126 134 135 136 145 146 156 234 235 236 245 246 256 345 346 456 1234 1235 1236 2345 2346 3456 12345 12346 13456 23456 123456)
   if [[ "${ary[@]}" =~ "${desc_bk}" ]]; then
@@ -48,9 +49,13 @@ while :; do echo
   fi
 done
 
+#将“backup_destination=任意值”改为“backup_destination=”,并写入文件
 sed -i 's@^backup_destination=.*@backup_destination=@' ./options.conf
+#如果输入值有“1”，则将“backup_destination=任意值”改为“backup_destination=local”,并写入文件
 [ `echo ${desc_bk} | grep -e 1` ] && sed -i 's@^backup_destination=.*@backup_destination=local@' ./options.conf
+#如果输入值有“2”，则将backup_destination值加上remote,并写入文件
 [ `echo ${desc_bk} | grep -e 2` ] && sed -i 's@^backup_destination=.*@&,remote@' ./options.conf
+#如果输入值有“3”，则将backup_destination值加上oss,并写入文件
 [ `echo ${desc_bk} | grep -e 3` ] && sed -i 's@^backup_destination=.*@&,oss@' ./options.conf
 [ `echo ${desc_bk} | grep -e 4` ] && sed -i 's@^backup_destination=.*@&,cos@' ./options.conf
 [ `echo ${desc_bk} | grep -e 5` ] && sed -i 's@^backup_destination=.*@&,upyun@' ./options.conf
