@@ -95,12 +95,14 @@ if [[ ${desc_bk} =~ ^[1,2]$ ]]; then
     read -p "(Default directory: ${backup_dir}): " new_backup_dir
     #如果输入的为空值，则使用默认备份目录
     [ -z "${new_backup_dir}" ] && new_backup_dir="${backup_dir}"
+    #如果路径中不含”/"，则输出错误
     if [ -z "`echo ${new_backup_dir}| grep '^/'`" ]; then
       echo "${CWARNING}input error! ${CEND}"
     else
       break
     fi
   done
+  # 将备份目录写入配置文件
   sed -i "s@^backup_dir=.*@backup_dir=${new_backup_dir}@" ./options.conf
 fi
 
