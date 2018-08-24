@@ -60,6 +60,7 @@ sed -i 's@^backup_destination=.*@backup_destination=@' ./options.conf
 [ `echo ${desc_bk} | grep -e 4` ] && sed -i 's@^backup_destination=.*@&,cos@' ./options.conf
 [ `echo ${desc_bk} | grep -e 5` ] && sed -i 's@^backup_destination=.*@&,upyun@' ./options.conf
 [ `echo ${desc_bk} | grep -e 6` ] && sed -i 's@^backup_destination=.*@&,qiniu@' ./options.conf
+#去掉值的逗号
 sed -i 's@^backup_destination=,@backup_destination=@' ./options.conf
 
 while :; do echo
@@ -67,8 +68,11 @@ while :; do echo
   echo -e "\t${CMSG}1${CEND}. Only Database"
   echo -e "\t${CMSG}2${CEND}. Only Website"
   echo -e "\t${CMSG}3${CEND}. Database and Website"
+  #读取屏幕输入的备份数据库类型选项值
   read -p "Please input a number:(Default 1 press Enter) " content_bk
+  #默认只备份数据库
   [ -z "${content_bk}" ] && content_bk=1
+  #如果选项值不为1~3，则报错
   if [[ ! ${content_bk} =~ ^[1-3]$ ]]; then
     echo "${CWARNING}input error! Please only input number 1~3${CEND}"
   else
@@ -76,14 +80,20 @@ while :; do echo
   fi
 done
 
+#如果备份数据库类型选项为1，则将“backup_content=任意值”改为“backup_content=db'，并写入文件
 [ "${content_bk}" == '1' ] && sed -i 's@^backup_content=.*@backup_content=db@' ./options.conf
+#如果备份数据库类型选项为2，则将“backup_content=任意值”改为“backup_content=web'，并写入文件
 [ "${content_bk}" == '2' ] && sed -i 's@^backup_content=.*@backup_content=web@' ./options.conf
+#如果备份数据库类型选项为3，则将“backup_content=任意值”改为“backup_content=db,web'，并写入文件
 [ "${content_bk}" == '3' ] && sed -i 's@^backup_content=.*@backup_content=db,web@' ./options.conf
 
+##如果备份数据库类型选项为1,2
 if [[ ${desc_bk} =~ ^[1,2]$ ]]; then
   while :; do echo
+    #输入备份目录
     echo "Please enter the directory for save the backup file: "
     read -p "(Default directory: ${backup_dir}): " new_backup_dir
+    #如果输入的为空值，则使用默认备份目录
     [ -z "${new_backup_dir}" ] && new_backup_dir="${backup_dir}"
     if [ -z "`echo ${new_backup_dir}| grep '^/'`" ]; then
       echo "${CWARNING}input error! ${CEND}"
