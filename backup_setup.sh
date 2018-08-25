@@ -170,10 +170,13 @@ echo "You have to backup the content:"
 
 #如果是远程备份
 if [ `echo ${desc_bk} | grep -e 2` ]; then
+#创建iplist.txt
   > tools/iplist.txt
   while :; do echo
     read -p "Please enter the remote host ip: " remote_ip
+    #如果ip为空或者等于'127.0.0.1'
     [ -z "${remote_ip}" -o "${remote_ip}" == '127.0.0.1' ] && continue
+    #输入空行
     echo
     read -p "Please enter the remote host port(Default: 22) : " remote_port
     [ -z "${remote_port}" ] && remote_port=22
@@ -182,9 +185,12 @@ if [ `echo ${desc_bk} | grep -e 2` ]; then
     [ -z "${remote_user}" ] && remote_user=root
     echo
     read -p "Please enter the remote host password: " remote_password
+    #Linux bc 命令   http://www.runoob.com/linux/linux-comm-bc.html
+    #tr -d '\\' 删除"\"。tr -d '\n' 删除"\n"
     IPcode=$(echo "ibase=16;$(echo "${remote_ip}" | xxd -ps -u)"|bc|tr -d '\\'|tr -d '\n')
     Portcode=$(echo "ibase=16;$(echo "${remote_port}" | xxd -ps -u)"|bc|tr -d '\\'|tr -d '\n')
     PWcode=$(echo "ibase=16;$(echo "$remote_password" | xxd -ps -u)"|bc|tr -d '\\'|tr -d '\n')
+    #删除 ~/.ssh/known_hosts 文件中包含 remote_ip 的行
     [ -e "~/.ssh/known_hosts" ] && grep ${remote_ip} ~/.ssh/known_hosts | sed -i "/${remote_ip}/d" ~/.ssh/known_hosts
     ./tools/mssh.exp ${IPcode}P ${remote_user} ${PWcode}P ${Portcode}P true 10
     if [ $? -eq 0 ]; then
