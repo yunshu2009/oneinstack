@@ -107,44 +107,58 @@ if [[ ${desc_bk} =~ ^[1,2]$ ]]; then
 fi
 
 while :; do echo
+ #提示输入备份天数
   echo "Please enter a valid backup number of days: "
   read -p "(Default days: 5): " expired_days
+  #如果未输入备份天数，则默认为5天
   [ -z "${expired_days}" ] && expired_days=5
+  #如果输入天数不是数字，则报错
   [ -n "`echo ${expired_days} | sed -n "/^[0-9]\+$/p"`" ] && break || echo "${CWARNING}input error! Please only enter numbers! ${CEND}"
 done
+#将备份天数写入配置文件
 sed -i "s@^expired_days=.*@expired_days=${expired_days}@" ./options.conf
-
+#如果备份的不是 web
 if [ "${content_bk}" != '2' ]; then
+  #grep用法：http://www.runoob.com/linux/linux-comm-grep.html
+  #打印除 “performance_schema/information_schema/mysql/sys"的列，命令：/usr/local/mysql/bin/mysql -uroot -ppassword-e "show databases\G" | grep Database | awk '{print $2}' | grep -Evw "(performance_schema|information_schema|mysql|sys)"
   databases=`${db_install_dir}/bin/mysql -uroot -p$dbrootpwd -e "show databases\G" | grep Database | awk '{print $2}' | grep -Evw "(performance_schema|information_schema|mysql|sys)"`
   while :; do echo
     echo "Please enter one or more name for database, separate multiple database names with commas: "
     read -p "(Default database: `echo $databases | tr ' ' ','`) " db_name
+    #删除数据库的空格
     db_name=`echo ${db_name} | tr -d ' '`
+    #如果输入为空，则 db_name 为全部数据库
     [ -z "${db_name}" ] && db_name="`echo $databases | tr ' ' ','`"
     D_tmp=0
     for D in `echo ${db_name} | tr ',' ' '`
     do
+      #如果数据库不存在，则提示错误
       [ -z "`echo $databases | grep -w $D`" ] && { echo "${CWARNING}$D was not exist! ${CEND}" ; D_tmp=1; }
     done
     [ "$D_tmp" != '1' ] && break
   done
+  #将 db_name 配置写入配置文件 ./options.conf
   sed -i "s@^db_name=.*@db_name=${db_name}@" ./options.conf
 fi
 
+#如果备份的不是数据库
 if [ "${content_bk}" != '1' ]; then
   websites=`ls ${wwwroot_dir}`
   while :; do echo
     echo "Please enter one or more name for website, separate multiple website names with commas: "
     read -p "(Default website: `echo $websites | tr ' ' ','`) " website_name
     website_name=`echo ${website_name} | tr -d ' '`
+    #如果没输入备份 web 根目录，则备份根目录为设置的备份根目录（目录以空格分割）
     [ -z "${website_name}" ] && website_name="`echo $websites | tr ' ' ','`"
     W_tmp=0
     for W in `echo ${website_name} | tr ',' ' '`
     do
+      #判断网站目录是否存在
       [ ! -e "${wwwroot_dir}/$W" ] && { echo "${CWARNING}${wwwroot_dir}/$W not exist! ${CEND}" ; W_tmp=1; }
     done
     [ "$W_tmp" != '1' ] && break
   done
+  #将备份目录写入配置文件
   sed -i "s@^website_name=.*@website_name=${website_name}@" ./options.conf
 fi
 
@@ -153,6 +167,8 @@ echo "You have to backup the content:"
 [ "${content_bk}" != '2' ] && echo "Database: ${CMSG}${db_name}${CEND}"
 [ "${content_bk}" != '1' ] && echo "Website: ${CMSG}${website_name}${CEND}"
 
+
+#如果是远程备份
 if [ `echo ${desc_bk} | grep -e 2` ]; then
   > tools/iplist.txt
   while :; do echo
@@ -186,6 +202,7 @@ if [ `echo ${desc_bk} | grep -e 2` ]; then
   done
 fi
 
+#如果是OSS备份
 if [ `echo ${desc_bk} | grep -e 3` ]; then
   if [ ! -e "/usr/local/bin/ossutil" ]; then
     if [ "${OS_BIT}" == '64' ]; then
@@ -345,6 +362,8 @@ if [ `echo ${desc_bk} | grep -e 5` ]; then
   done
 fi
 
+
+#如果备份目录时七牛
 if [ `echo ${desc_bk} | grep -e 6` ]; then
   if [ ! -e "/usr/local/bin/qrsctl" ]; then
     if [ "${OS_BIT}" == '64' ]; then
