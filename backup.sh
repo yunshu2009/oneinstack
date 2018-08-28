@@ -182,6 +182,7 @@ do
     [ -n "`echo ${backup_content} | grep -ow db`" ] && DB_Local_BK
     [ -n "`echo ${backup_content} | grep -ow web`" ] && WEB_Local_BK
   fi
+  #远程备份
   if [ "${DEST}" == 'remote' ]; then
     echo "com:::[ ! -e "${backup_dir}" ] && mkdir -p ${backup_dir}" > config_backup.txt
     [ -n "`echo ${backup_content} | grep -ow db`" ] && DB_Remote_BK
